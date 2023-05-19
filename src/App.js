@@ -20,6 +20,8 @@ function App() {
     return children
   }
 
+  //routes
+
   return (
     <BrowserRouter>
       <Routes>

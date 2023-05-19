@@ -1,7 +1,8 @@
-import { React, useEffect, useState } from 'react'
+import { React, useContext, useEffect, useState } from 'react'
 import { auth, firestore } from '../firebase';
 import { useNavigate } from "react-router-dom";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, setDoc, doc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { AuthContext } from '../context/AuthContext';
 
 
 export const Home = () => {
@@ -9,6 +10,7 @@ export const Home = () => {
     const navigate = useNavigate()
     const [username, setUsername] = useState('');
     const [roomName, setRoomName] = useState('');
+    const { currentUser } = useContext(AuthContext)
 
     useEffect(() => {
 
@@ -36,6 +38,17 @@ export const Home = () => {
             const roomRef = await addDoc(collection(firestore, "chatRooms"), {
                 name: roomName
             });
+
+            await setDoc(doc(firestore, "roomChat", roomRef.id), {
+                [roomRef.id + ".userInfo"]: {
+                  uid: currentUser.uid,
+                  displayName: currentUser.displayName,
+                  photoURL: currentUser.photoURL,
+                },
+                [roomRef.id + ".date"]: serverTimestamp()
+              });
+            
+
             console.log('Document created with ID: ', roomRef.id);
 
             navigate("/chat")
