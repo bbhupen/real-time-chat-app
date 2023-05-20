@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react'
 import Message from './Message'
-import { RoomContext } from '../context/RoomContext'
+import { ChatContext } from '../context/ChatContext'
 import { doc, onSnapshot } from 'firebase/firestore'
 import { firestore } from '../firebase'
 
@@ -8,12 +8,13 @@ import { firestore } from '../firebase'
 const Messages = () => {
 
   const [messages, setMessages] = useState('')
-  const { data } = useContext(RoomContext)
+  const { data } = useContext(ChatContext);
 
 
   useEffect(() => {
-    if (data && data.room && data.room.id) {
-      const unsub = onSnapshot(doc(firestore, 'chat', data.room.id), (doc) => {
+
+    if (data && data.chatId ) {
+      const unsub = onSnapshot(doc(firestore, 'chat', data.chatId), (doc) => {
         doc.exists() && setMessages(doc.data().messages)
       })
 
@@ -21,9 +22,8 @@ const Messages = () => {
         unsub()
       }
     }
-  }, [data, data.room.id])
+  }, [data])
 
-  console.log(messages)
 
   return (
     <div className="messages">

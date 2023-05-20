@@ -2,50 +2,47 @@ import React, { useContext, useEffect, useState } from 'react';
 import { getDocs, collection, doc, setDoc, arrayRemove, arrayUnion, getDoc, updateDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { firestore } from '../firebase';
 import { AuthContext } from '../context/AuthContext';
-import { RoomContext } from '../context/RoomContext';
+import { ChatsContext } from '../context/ChatsContext';
+import { ChatContext } from '../context/ChatContext';
 
 const Chats = () => {
-  const [chatRooms, setChatRooms] = useState([]);
-  const [chatRoom, setChatRoom] = useState([]);
-  const [roomId, setRoomId] = useState('')
-  const { currentUser } = useContext(AuthContext)
-  const { dispatch } = useContext(RoomContext)
+  const [roomId, setRoomId] = useState('');
+  const { currentUser } = useContext(AuthContext);
+  const { dispatch1 } = useContext(ChatsContext);
+  const { data, dispatch2 } = useContext(ChatContext);
+  const [chat, setChat] = useState([]);
 
   useEffect(() => {
-
-
-    const fetchChatRooms = async () => {
-      try {
+    const getChats = async () => {
+      if (data && data.type && data.type === "ROOM") {
         const querySnapshot = await getDocs(collection(firestore, 'chatRooms'));
-        const rooms = await querySnapshot.docs.map((doc) => ({
+        const rooms = querySnapshot.docs.map((doc) => ({
           id: doc.id,
+          type: "ROOM",
           ...doc.data(),
         }));
-        setChatRooms(rooms);
-
-      } catch (error) {
-        console.error('Error fetching chat rooms:', error);
+        setChat(rooms);
+      } else if (data && data.type && data.type === "PRIVATE") {
+        const unsub = onSnapshot(doc(firestore, "userChats", currentUser.uid), (doc) => {
+          const c = {
+            id: doc.id,
+            type: "PRIVATE",
+            ...doc.data()
+          };
+          setChat([c]);
+        });
+        return () => {
+          unsub();
+        };
       }
     };
 
-    const getRoomChat = () => {
-      const unsub = onSnapshot(doc(firestore, "roomChat", roomId), (doc) => {
-        setChatRoom(doc.data());
-      });
-
-      return () => {
-        unsub();
-      }
+    if (currentUser && currentUser.uid) {
+      getChats();
     }
-
-
-    fetchChatRooms();
-    roomId && getRoomChat();
-
-  }, [roomId]);
+  }, [currentUser, data, roomId]);
 
   const handleJoinLeaveClick = async (roomId) => {
-
     try {
       if (currentUser) {
         const roomRef = doc(firestore, 'chatRooms', roomId);
@@ -53,20 +50,16 @@ const Chats = () => {
         const users = await roomSnapshot.data().users || [];
 
         if (users.includes(currentUser.uid)) {
-
           await setDoc(roomRef, {
             users: arrayRemove(currentUser.uid),
           }, { merge: true });
-
-          setRoomId(roomId)
+          setRoomId(roomId);
           console.log('User left the chat room');
-
-
         } else {
           await setDoc(roomRef, {
             users: arrayUnion(currentUser.uid),
           }, { merge: true });
-          setRoomId(roomId)
+          setRoomId(roomId);
           console.log('User joined the chat room');
         }
       }
@@ -75,29 +68,29 @@ const Chats = () => {
     }
   };
 
-
-  const handleSelect = async (room) => {
-    dispatch({ type: "UPDATE_CHAT", payload: room })
-    const res = await getDoc(doc(firestore, "chat", room.id));
-
-    if (!res.exists()) {
-      await setDoc(doc(firestore, "chat", room.id), { messages: [] });
+  const handleSelect = async (type, obj) => {
+    console.log(obj, "OJECTTT");
+    if (type === "ROOM") {
+      dispatch2({ type: "ROOM", payload: obj });
     }
-  }
+  };
 
+
+  console.log("CHAT", chat)
 
   return (
     <div className="chats">
-      {chatRooms.map((room) => (
-        <div className="userChat" key={room.id} onClick={() => handleSelect(room)}>
+      {chat && chat.map((chat) => (
+        <div className="userChat" key={chat.id} onClick={() => handleSelect(chat.type, chat)}>
           <div className="userChatInfo">
-            <span>{room.name}</span>
+            <span>{chat.displayName}</span>
           </div>
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             type="button"
-            onClick={() => handleJoinLeaveClick(room.id)}>
-            {room.users && room.users.includes(currentUser?.uid) ? 'Leave' : 'Join'}
+            onClick={() => handleJoinLeaveClick(chat.id)}
+          >
+            {chat.users && chat.users.includes(currentUser?.uid) ? 'Leave' : 'Join'}
           </button>
         </div>
       ))}

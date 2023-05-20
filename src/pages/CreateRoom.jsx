@@ -1,8 +1,9 @@
 import { React, useContext, useEffect, useState } from 'react'
 import { auth, firestore } from '../firebase';
 import { useNavigate } from "react-router-dom";
-import { collection, addDoc, setDoc, doc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { collection, addDoc, setDoc, doc, serverTimestamp } from "firebase/firestore";
 import { AuthContext } from '../context/AuthContext';
+import { v4 as uuid, v4 } from 'uuid'
 
 
 export const Home = () => {
@@ -36,7 +37,9 @@ export const Home = () => {
         e.preventDefault();
         try {
             const roomRef = await addDoc(collection(firestore, "chatRooms"), {
-                name: roomName
+                displayName: roomName,
+                photoUrl: "https://www.iconpacks.net/icons/1/free-user-group-icon-296-thumb.png",
+                users:[]
             });
 
             await setDoc(doc(firestore, "roomChat", roomRef.id), {
@@ -47,6 +50,9 @@ export const Home = () => {
                 },
                 [roomRef.id + ".date"]: serverTimestamp()
               });
+
+              await setDoc(doc(firestore, "chat", roomRef.id), { messages: [] });
+
             
 
             console.log('Document created with ID: ', roomRef.id);

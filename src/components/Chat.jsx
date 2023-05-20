@@ -2,17 +2,18 @@ import React, { useContext } from 'react'
 import Input from './Input'
 import Messages from './Messages'
 import { AuthContext } from '../context/AuthContext'
-import { RoomContext } from '../context/RoomContext'
+import { ChatContext } from '../context/ChatContext'
 
 const Chat = () => {
   const { currentUser } = useContext(AuthContext)
-  const { data } = useContext(RoomContext)
+  const { data } = useContext(ChatContext)
+
 
   return (
     <div className='chat'>
       <div className="chatInfo">
-        <img src={currentUser.photoURL} alt="" />
-        <span>{data.room?.name}</span>
+        <img src={data.chat?.photoUrl} alt="" />
+        <span>{data.chat?.displayName}</span>
       </div>
       <Messages />
       <Input />
