@@ -23,7 +23,6 @@ const Room = () => {
   return (
     <div className="room">
       <div className="create">
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button" onClick={() => handleSelectPrivate(currentUser)} >Private Chats</button>
 
         <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button" onClick={() => handleSelectRoom(currentUser)}>Room Chats</button>
 
