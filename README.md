@@ -19,7 +19,7 @@ Before installing and running the application, make sure you have the following 
 
 ## Firease Requirements
 
-Before installing and running the application, make sure you have the following requirements satisfied:
+Before installing and running the application, make sure you have the following requirements satisfied on firebase:
 
 - Firebase Auth
 - Firestore Database 
